@@ -1,0 +1,77 @@
+name: Mobile CI/CD
+
+on:
+  push:
+    branches:
+      - main
+      - development
+    paths:
+      - 'NotaGest_FrontMobi/**'
+      - '.github/workflows/mobile-ci.yml'
+
+permissions:
+  contents: write
+
+jobs:
+  ci-test-and-build:
+    name: Mobile CI (Tests, Coverage & Docker Build)
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: ./NotaGest_FrontMobi
+
+    steps:
+      - name: Checkout do código
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Instalar dependências
+        run: npm install --legacy-peer-deps
+
+      - name: Executar testes automatizados (AAA) com cobertura
+        run: npm run test:coverage
+
+      - name: Login no Docker Hub
+        if: success() && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/development')
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build e Push da Imagem Docker (Development)
+        if: github.ref == 'refs/heads/development'
+        uses: docker/build-push-action@v5
+        with:
+          context: ./NotaGest_FrontMobi
+          push: true
+          tags: ${{ secrets.DOCKER_USERNAME }}/notagest-mobile:dev
+
+      - name: Build e Push da Imagem Docker (Production)
+        if: github.ref == 'refs/heads/main'
+        uses: docker/build-push-action@v5
+        with:
+          context: ./NotaGest_FrontMobi
+          push: true
+          tags: |
+            ${{ secrets.DOCKER_USERNAME }}/notagest-mobile:latest
+
+      - name: Enviar e-mail de falha
+        uses: dawidd6/action-send-mail@v3
+        if: failure()
+        with:
+          server_address: smtp.gmail.com
+          server_port: 465
+          secure: true
+          username: ${{ secrets.EMAIL_ORIGEM }}
+          password: ${{ secrets.SENHA_EMAIL }}
+          subject: Falha no Pipeline Mobile - ${{ github.repository }}
+          to: ${{ secrets.EMAIL_DESTINO }}
+          from: ${{ secrets.EMAIL_ORIGEM }}

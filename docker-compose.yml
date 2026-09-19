@@ -1,5 +1,4 @@
 services:
-  # 🍃 Banco de Dados (Opcional se usar Atlas, mas mantido para redundância local)
   mongodb:
     image: mongo:latest
     container_name: notagest-db
@@ -10,10 +9,9 @@ services:
     networks:
       - notagest-network
 
-  # ⚙️ Backend Monolítico (Cérebro + Autenticação)
   backend:
     build:
-      context: .
+      context: ./NotaGest_Backend
     container_name: notagest-backend
     ports:
       - "5000:5000"
@@ -31,10 +29,9 @@ services:
     networks:
       - notagest-network
 
-  # 💻 Frontend (Interface)
-  frontend:
+  frontend-web:
     build:
-      context: ../NotaGest_FrontReact
+      context: ./NotaGest_FrontReact
     container_name: notagest-frontend
     ports:
       - "4000:4000"
@@ -47,10 +44,9 @@ services:
     networks:
       - notagest-network
 
-  # 📱 Mobile (Expo Metro Bundler)
-  mobile:
+  frontend-mobile:
     build:
-      context: ../NotaGest_FrontMobi
+      context: ./NotaGest_FrontMobi
     container_name: notagest-mobile
     ports:
       - "8081:8081"
@@ -67,4 +63,3 @@ networks:
 
 volumes:
   mongo-data:
-

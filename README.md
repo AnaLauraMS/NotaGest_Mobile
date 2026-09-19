@@ -162,26 +162,24 @@ cp .env.example .env
 ---
 
 ### Passo 3: Execução via Docker Compose (Método Recomendado)
-A orquestração via Docker é a forma mais prática de rodar o ecossistema completo (Frontend, Backend e Banco de Dados) de forma isolada e integrada.
+A orquestração via Docker é a forma mais prática de rodar o ecossistema completo (Frontend Web, Mobile, Backend e Banco de Dados) de forma isolada e integrada.
 
-1. Navegue até a pasta do **Backend** (onde se encontra o arquivo `docker-compose.yml`):
+1. Inicialize o Docker Compose a partir da raiz do repositório (ou da pasta `NotaGest_Backend`):
    ```bash
-   cd ../Backend_NotaGest_4.0
+   docker compose up --build
    ```
-2. Inicialize o Docker Compose executando:
-   ```bash
-   docker-compose up --build
-   ```
-3. O Docker irá automaticamente baixar a imagem oficial do **MongoDB**, realizar o build das imagens personalizadas do **Backend** e do **Frontend**, configurar a rede isolada e inicializar os serviços.
-4. **Acessando a aplicação:**
-   - **Interface Web (Frontend):** Acesse seu navegador em [http://localhost:4000](http://localhost:4000)
+2. O Docker irá automaticamente baixar a imagem oficial do **MongoDB**, realizar o build das imagens personalizadas do **Backend**, do **Frontend Web** e do **Frontend Mobile**, configurando a rede compartilhada e inicializando os contêineres em sequência ordenada (`depends_on`).
+3. **Acessando os serviços:**
+   - **Interface Web (Frontend):** Acesse em [http://localhost:4000](http://localhost:4000)
+   - **Metro Bundler (Mobile):** Acesse em [http://localhost:8081](http://localhost:8081) ou escaneie o QR Code com o aplicativo Expo Go
    - **API REST (Backend):** Acesse em [http://localhost:5000](http://localhost:5000)
    - **Documentação de Rotas (Swagger):** Disponível em [http://localhost:5000/api-docs](http://localhost:5000/api-docs)
 
 Para desligar todos os containers e limpar os recursos criados, use o comando:
 ```bash
-docker-compose down
+docker compose down
 ```
+
 
 ---
 
