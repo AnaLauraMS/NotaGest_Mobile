@@ -1,5 +1,7 @@
 import express, { Request, Response } from 'express';
 import cors from 'cors';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
 import path from 'path';
 import { fileURLToPath } from 'url';
@@ -26,7 +28,41 @@ if (process.env.NODE_ENV !== 'test') {
   connectDB();
 }
 
+function sanitizeNoSql(payload: unknown): void {
+  if (!payload || typeof payload !== 'object') {
+    return;
+  }
+  for (const key of Object.keys(payload as Record<string, unknown>)) {
+    if (key.startsWith('$') || key.includes('.')) {
+      delete (payload as Record<string, unknown>)[key];
+    } else {
+      sanitizeNoSql((payload as Record<string, unknown>)[key]);
+    }
+  }
+}
+
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { message: "Muitas tentativas de autenticação a partir deste IP. Tente novamente mais tarde." }
+});
+
+const aiLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 15,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: { message: "Limite de requisições de Inteligência Artificial atingido. Aguarde um minuto." }
+});
+
 const app = express();
+
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: "cross-origin" }
+}));
+
 app.use(cors({
   origin: [
     'http://localhost:3000',
@@ -44,26 +80,32 @@ app.use(cors({
 
 app.use(express.json());
 
-// Swagger
+app.use((req, res, next) => {
+  if (req.body) {
+    sanitizeNoSql(req.body);
+  }
+  if (req.params) {
+    sanitizeNoSql(req.params);
+  }
+  next();
+});
+
 setupSwagger(app);
 
-// Logs
 app.use(requestLogger);
 
-// Rotas
+app.use('/api/users/login', authLimiter);
+app.use('/api/users/register', authLimiter);
 app.use('/api/users', userRoutes);
 app.use('/api/uploads', fileRoutes);
 app.use('/api/imoveis', propertyRoutes);
 app.use('/api/uploadfile', uploadFileRoutes);
-app.use('/api/ai', aiRoutes);
+app.use('/api/ai', aiLimiter, aiRoutes);
 
-// Servir arquivos da pasta uploads usando process.cwd() para compatibilidade com Jest/ESM
 app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
 
-// erro global
 app.use(errorMiddleware);
 
-// 404
 app.use((req: Request, res: Response) => {
   logger.info("Rota não encontrada", {
     url: req.originalUrl,

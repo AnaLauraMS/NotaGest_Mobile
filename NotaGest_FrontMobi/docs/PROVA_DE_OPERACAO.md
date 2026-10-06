@@ -312,6 +312,24 @@ Migrar a experiência do sistema NotaGest do ecossistema Web (Next.js 15) para u
        - **Suíte de Testes:** 51 testes unitários passando em 8 arquivos de teste com 100% de sucesso.
        - **Tipagem Estática:** `npx tsc --noEmit` aprovado com 0 erros.
        - **Diretriz de Código:** 100% de conformidade com a política de Zero Comentários.
+- **FASE 12: Mitigações de Segurança da Informação, Blindagem de Borda e Matriz de Riscos SI:**
+   1. *Blindagem HTTP e Anti-Fingerprinting (RSK-05):*
+      - Integração do middleware `helmet` no [server.ts](../../NotaGest_Backend/src/server.ts) com `crossOriginResourcePolicy: { policy: "cross-origin" }`.
+      - Supressão do cabeçalho `X-Powered-By: Express` em todas as rotas do ecossistema.
+   2. *Contenção de Força Bruta e Credential Stuffing (RSK-03):*
+      - Implementação de `express-rate-limit` restritivo sobre `/api/users/login` e `/api/users/register`.
+      - Teto máximo de 20 requisições por IP a cada 15 minutos, retornando HTTP 429 Too Many Requests.
+   3. *Defesa contra Injeção NoSQL em MongoDB (RSK-06):*
+      - Implementação de sanitizador recursivo profundo inspecionando e neutralizando chaves iniciadas por `$` ou contendo `.` em `req.body` e `req.params`.
+   4. *Controle de Quota e Mitigação de DoS na IA Gemini (RSK-10):*
+      - Rate limiting dedicado de 15 requisições por minuto por IP em todas as rotas `/api/ai/*`.
+   5. *Sincronização de Governança e Matriz de Riscos:*
+      - Atualização da planilha executiva [Matriz_de_Riscos_SI_NotaGest.xlsx](Matriz_de_Riscos_SI_NotaGest.xlsx) com transição de status para "Mitigado" e recálculo dinâmico dos somatórios da aba "Objetos de Auditoria".
+      - Atualização do dossiê [MATRIZ_DE_RISCO_SI.md](MATRIZ_DE_RISCO_SI.md) com novo mapa de calor, tabela comparativa de risco residual e queda de 32,2% no risco global da plataforma (de 348 para 236 pontos).
+      - Atualização formal dos contratos em [CONTRATOS_API.md](CONTRATOS_API.md).
+   6. *Métricas Consolidadas da Fase 12:*
+      - **Tipagem Estática:** `npx tsc --noEmit` aprovado com 0 erros no backend.
+      - **Diretriz de Código:** 100% de conformidade com a política de Zero Comentários.
 
 ---
 

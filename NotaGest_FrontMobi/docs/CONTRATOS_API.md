@@ -207,3 +207,41 @@ A resolução da URL base da API é controlada centralizadamente pela chave `EXP
     "answer": "string"
   }
   ```
+
+---
+
+## 5. Políticas de Segurança e Limitação de Taxa (Rate Limiting)
+
+Para proteger a integridade do sistema, prevenir ataques de negação de serviço e força bruta, o backend implementa as seguintes regras na camada HTTP:
+
+### 5.1. Proteção de Autenticação (`/api/users/login` e `/api/users/register`)
+- **Mecanismo:** `express-rate-limit`
+- **Janela de Tempo:** 15 minutos (900.000 ms)
+- **Teto de Requisições:** Máximo de 20 tentativas por IP
+- **Resposta em Excesso (HTTP 429):**
+  ```json
+  {
+    "message": "Muitas tentativas de login/registro. Tente novamente em 15 minutos."
+  }
+  ```
+
+### 5.2. Proteção de Custos e Quota na IA Gemini (`/api/ai/*`)
+- **Mecanismo:** `express-rate-limit`
+- **Janela de Tempo:** 1 minuto (60.000 ms)
+- **Teto de Requisições:** Máximo de 15 requisições por IP
+- **Resposta em Excesso (HTTP 429):**
+  ```json
+  {
+    "message": "Limite de requisições para a IA excedido. Aguarde um minuto."
+  }
+  ```
+
+### 5.3. Higienização Contra Injeção NoSQL
+- **Middleware:** Sanitizador recursivo em `req.body` e `req.params`
+- **Regra:** Chaves contendo o prefixo `$` (operadores MongoDB como `$ne`, `$gt`, `$where`) ou o caractere `.` (navegação de subdocumentos arbitrária) são expurgadas antes de qualquer operação de persistência.
+
+### 5.4. Blindagem de Cabeçalhos HTTP
+- **Middleware:** `helmet`
+- **Diretivas Ativas:**
+  - Supressão de `X-Powered-By: Express` (anti-fingerprinting)
+  - `Cross-Origin-Resource-Policy: cross-origin` para interoperabilidade com o cliente mobile.
