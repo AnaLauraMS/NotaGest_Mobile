@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Editor de Cards — Topologia CloudStack & NotaGest</title>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+  <style>
+    :root {
+      --bg: #030712;
+      --canvas-bg: #050B14;
+      --card-bg: #0A1224;
+      --text: #F8FAFC;
+      --cyan: #38BDF8;
+      --green: #10B981;
+      --purple: #818CF8;
+      --orange: #F59E0B;
+      --border-cyan: #0284C7;
+      --border-green: #059669;
+      --border-purple: #4338CA;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      overflow-x: auto;
+      min-width: 1600px;
+    }
+    .top-toolbar {
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+      background: rgba(10, 18, 36, 0.95);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid #1E293B;
+      padding: 12px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+    }
+    .toolbar-title h1 {
+      font-size: 1.15rem;
+      font-weight: 800;
+      color: #FFFFFF;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .toolbar-title p {
+      font-size: 0.8rem;
+      color: #94A3B8;
+    }
+    .toolbar-actions {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+    .btn {
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      border: 1px solid transparent;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, #0284C7, #2563EB);
+      color: #FFFFFF;
+      box-shadow: 0 2px 10px rgba(37, 99, 235, 0.3);
+    }
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 14px rgba(37, 99, 235, 0.5);
+    }
+    .btn-success {
+      background: linear-gradient(135deg, #059669, #10B981);
+      color: #FFFFFF;
+    }
+    .btn-secondary {
+      background: #1E293B;
+      color: #E2E8F0;
+      border-color: #334155;
+    }
+    .btn-secondary:hover {
+      background: #334155;
+    }
+    .canvas-wrapper {
+      padding: 40px;
+      display: flex;
+      justify-content: center;
+    }
+    #diagramCanvas {
+      width: 1750px;
+      background: var(--canvas-bg);
+      border: 1px solid #1E293B;
+      border-radius: 16px;
+      padding: 40px 30px;
+      position: relative;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.8);
+    }
+    .header-diagram {
+      text-align: center;
+      margin-bottom: 35px;
+    }
+    .header-diagram h2 {
+      font-size: 1.9rem;
+      font-weight: 900;
+      letter-spacing: 0.05em;
+      color: #FFFFFF;
+      text-transform: uppercase;
+    }
+    .header-diagram p {
+      color: #94A3B8;
+      font-size: 1rem;
+      margin-top: 6px;
+    }
+    .layout-columns {
+      display: grid;
+      grid-template-columns: 320px 840px 480px;
+      gap: 30px;
+      align-items: stretch;
+    }
+    .dashed-zone {
+      border: 2px dashed #0284C7;
+      border-radius: 16px;
+      padding: 24px 20px;
+      background: rgba(3, 18, 38, 0.3);
+      position: relative;
+    }
+    .dashed-zone.zone-green {
+      border-color: #059669;
+      background: rgba(2, 44, 34, 0.25);
+    }
+    .zone-header {
+      text-align: center;
+      margin-bottom: 20px;
+    }
+    .zone-title {
+      font-size: 1.1rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+    .zone-subtitle {
+      font-size: 0.82rem;
+      font-style: italic;
+      color: #94A3B8;
+      margin-top: 4px;
+    }
+    .card-box {
+      background: #0A1224;
+      border: 1.8px solid #0284C7;
+      border-radius: 12px;
+      padding: 18px;
+      margin-bottom: 20px;
+      position: relative;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.4);
+      resize: both;
+      overflow: auto;
+      min-width: 250px;
+      min-height: 120px;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .card-box:hover {
+      border-color: #38BDF8;
+      box-shadow: 0 12px 30px rgba(56, 189, 248, 0.15);
+    }
+    .card-box.card-green {
+      background: #052317;
+      border-color: #059669;
+    }
+    .card-box.card-green:hover {
+      border-color: #10B981;
+      box-shadow: 0 12px 30px rgba(16, 185, 129, 0.15);
+    }
+    .card-box.card-purple {
+      background: #141238;
+      border-color: #6366F1;
+    }
+    .card-box.card-purple:hover {
+      border-color: #818CF8;
+      box-shadow: 0 12px 30px rgba(129, 140, 248, 0.15);
+    }
+    .card-box.card-cyan {
+      background: #062338;
+      border-color: #0284C7;
+    }
+    .card-topbar {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+    .badge-pill {
+      font-size: 0.72rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      padding: 3px 10px;
+      border-radius: 9999px;
+      background: #0284C7;
+      color: #FFFFFF;
+      letter-spacing: 0.04em;
+    }
+    .badge-pill.badge-green { background: #059669; }
+    .badge-pill.badge-purple { background: #4338CA; }
+    .badge-pill.badge-cyan { background: #0284C7; }
+    .card-title {
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: #FFFFFF;
+      text-transform: uppercase;
+      letter-spacing: 0.02em;
+    }
+    .card-subtitle {
+      font-size: 0.82rem;
+      font-style: italic;
+      color: #94A3B8;
+      margin-bottom: 14px;
+    }
+    .card-body {
+      font-size: 0.85rem;
+      color: #E2E8F0;
+      line-height: 1.55;
+    }
+    .card-section-title {
+      font-size: 0.82rem;
+      font-weight: 800;
+      color: #FFFFFF;
+      text-transform: uppercase;
+      margin: 12px 0 4px 0;
+      letter-spacing: 0.03em;
+    }
+    .card-body p, .card-body li {
+      margin-bottom: 5px;
+    }
+    .card-body ul {
+      list-style-type: none;
+      padding-left: 0;
+    }
+    .card-body li::before {
+      content: "• ";
+      color: var(--cyan);
+      font-weight: bold;
+    }
+    .card-body.green-bullets li::before { color: var(--green); }
+    .card-body.purple-bullets li::before { color: var(--purple); }
+    .code-pill {
+      display: inline-block;
+      background: rgba(0, 0, 0, 0.4);
+      padding: 1px 6px;
+      border-radius: 4px;
+      font-family: monospace;
+      font-size: 0.8rem;
+      color: #38BDF8;
+      border: 1px solid rgba(56, 189, 248, 0.3);
+    }
+    .connector-badge {
+      display: inline-block;
+      background: #050B14;
+      border: 1px solid #F59E0B;
+      color: #F8FAFC;
+      border-radius: 6px;
+      padding: 4px 10px;
+      font-size: 0.75rem;
+      font-weight: 800;
+      margin: 6px 0;
+      box-shadow: 0 4px 10px rgba(245, 158, 11, 0.2);
+    }
+    .connector-badge.badge-blue {
+      border-color: #38BDF8;
+      box-shadow: 0 4px 10px rgba(56, 189, 248, 0.2);
+    }
+    .connector-badge.badge-green {
+      border-color: #10B981;
+      box-shadow: 0 4px 10px rgba(16, 185, 129, 0.2);
+    }
+    .summary-footer {
+      margin-top: 35px;
+      background: #030712;
+      border: 1.5px solid #1E293B;
+      border-radius: 12px;
+      padding: 18px 24px;
+    }
+    .summary-footer h3 {
+      font-size: 0.95rem;
+      font-weight: 900;
+      color: #FFFFFF;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 8px;
+    }
+    .summary-flow {
+      font-size: 0.84rem;
+      color: #CBD5E1;
+      margin-bottom: 6px;
+      line-height: 1.5;
+    }
+    .editable-text {
+      outline: none;
+      border-radius: 4px;
+      transition: background 0.2s;
+    }
+    .editable-text:hover {
+      background: rgba(255, 255, 255, 0.05);
+      cursor: text;
+    }
+    .editable-text:focus {
+      background: rgba(56, 189, 248, 0.15);
+      box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.4);
+    }
+    .grid-vms {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-top: 15px;
+    }
+    .hint-alert {
+      background: rgba(56, 189, 248, 0.1);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      border-radius: 8px;
+      padding: 10px 16px;
+      font-size: 0.85rem;
+      color: #93C5FD;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <header class="top-toolbar">
+    <div class="toolbar-title">
+      <h1>🎨 Editor de Cards — Topologia CloudStack & NotaGest</h1>
+      <p>Clique em qualquer texto para editar. Arraste a quina inferior direita de qualquer card para mudar o tamanho!</p>
+    </div>
+    <div class="toolbar-actions">
+      <button class="btn btn-secondary" onclick="resetToDefault()">🔄 Resetar Textos</button>
+      <button class="btn btn-secondary" onclick="saveToStorage()">💾 Salvar Layout</button>
+      <button class="btn btn-primary" onclick="exportAsNewImage()">📷 Baixar como Nova Imagem (PNG)</button>
+    </div>
+  </header>
+
+  <div style="padding: 16px 40px 0 40px;">
+    <div class="hint-alert">
+      💡 <strong>Como usar:</strong> Cada caixa é um card independente. Você pode <u>clicar em qualquer texto para reescrever</u>, mudar o tamanho puxando o cantinho cinza no canto inferior direito, e quando terminar, clicar no botão azul <strong>"Baixar como Nova Imagem (PNG)"</strong> para gerar sua imagem personalizada! A imagem original não será alterada.
+    </div>
+  </div>
+
+  <main class="canvas-wrapper">
+    <div id="diagramCanvas">
+      
+      <div class="header-diagram">
+        <h2 class="editable-text" contenteditable="true">TOPOLOGIA DE COMUNICAÇÕES — APACHE CLOUDSTACK & NOTAGEST</h2>
+        <p class="editable-text" contenteditable="true">Guia Resumido: Entrada (DNAT), Tráfego Interno (Guest Network) e Saída para Nuvem (SNAT)</p>
+      </div>
+
+      <div class="layout-columns">
+        
+        <div class="column-left">
+          <div class="card-box card-cyan" style="min-height: 680px;">
+            <div class="card-topbar">
+              <span class="badge-pill badge-cyan editable-text" contenteditable="true">DISPOSITIVOS</span>
+              <span class="card-title editable-text" contenteditable="true">USUÁRIOS & CLIENTES</span>
+            </div>
+            <div class="card-subtitle editable-text" contenteditable="true">Acessos Externos via Internet</div>
+
+            <div class="card-body">
+              <div class="card-section-title editable-text" contenteditable="true">• DISPOSITIVOS DE ACESSO:</div>
+              <ul>
+                <li class="editable-text" contenteditable="true">Navegador Web (Desktop / Mobile)</li>
+                <li class="editable-text" contenteditable="true">Aplicativo Mobile (Expo / React Native)</li>
+              </ul>
+
+              <div class="card-section-title editable-text" contenteditable="true">• COMO INICIA A CONEXÃO:</div>
+              <ul>
+                <li class="editable-text" contenteditable="true">1. Usuário digita a URL ou abre o App</li>
+                <li class="editable-text" contenteditable="true">2. Pacotes trafegam pela Internet pública</li>
+                <li class="editable-text" contenteditable="true">3. Destino: IP PÚBLICO da CloudStack</li>
+              </ul>
+
+              <div class="card-section-title editable-text" contenteditable="true">• PORTAS DE ENTRADA:</div>
+              <ul>
+                <li class="editable-text" contenteditable="true" style="color:#38BDF8;">-> Porta 4000: Interface Web (Next.js)</li>
+                <li class="editable-text" contenteditable="true" style="color:#38BDF8;">-> Porta 5000: API Backend (Node.js)</li>
+              </ul>
+
+              <div class="card-section-title editable-text" contenteditable="true">• ISOLAMENTO DE SEGURANÇA:</div>
+              <ul>
+                <li class="editable-text" contenteditable="true">O usuário externo NUNCA enxerga os IPs privados internos das VMs!</li>
+                <li class="editable-text" contenteditable="true">Toda comunicação passa pelo VR.</li>
+              </ul>
+
+              <div style="margin-top: 20px; text-align: center;">
+                <span class="connector-badge badge-blue editable-text" contenteditable="true">1. Acesso Externo [Portas 4000 e 5000]</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="column-center">
+          <div class="dashed-zone">
+            <div class="zone-header">
+              <div class="zone-title editable-text" contenteditable="true" style="color:#38BDF8;">APACHE CLOUDSTACK — AMBIENTE ISOLADO (GUEST NETWORK PRIVADA)</div>
+              <div class="zone-subtitle editable-text" contenteditable="true">VLAN/VxLAN Privada: As VMs comunicam-se entre si | Borda protegida pelo Virtual Router</div>
+            </div>
+
+            <div class="card-box card-green" style="min-height: 290px;">
+              <div class="card-topbar">
+                <span class="badge-pill badge-green editable-text" contenteditable="true">GATEWAY DE BORDA</span>
+                <span class="card-title editable-text" contenteditable="true">VIRTUAL ROUTER (VR)</span>
+              </div>
+              <div class="card-subtitle editable-text" contenteditable="true">Debian VR — Gateway e Roteador de Borda da CloudStack</div>
+
+              <div class="card-body green-bullets">
+                <ul>
+                  <li class="editable-text" contenteditable="true"><strong>INTERFACE WAN:</strong> IP Público (recebe clientes e faz saída SNAT)</li>
+                  <li class="editable-text" contenteditable="true"><strong>INTERFACE LAN:</strong> Gateway 192.168.1.1 (conecta às Guest VMs)</li>
+                </ul>
+
+                <div class="card-section-title editable-text" contenteditable="true">• PAPEL 1 [ENTRADA - DNAT / PORT FORWARDING]:</div>
+                <ul>
+                  <li class="editable-text" contenteditable="true" style="color:#34D399;">-> Porta pública :4000 encaminhada para a VM Web (192.168.1.10:4000)</li>
+                  <li class="editable-text" contenteditable="true" style="color:#34D399;">-> Porta pública :5000 encaminhada para a VM Backend (192.168.1.20:5000)</li>
+                </ul>
+
+                <div class="card-section-title editable-text" contenteditable="true">• PAPEL 2 [SAÍDA - SNAT / SOURCE NAT]:</div>
+                <ul>
+                  <li class="editable-text" contenteditable="true" style="color:#34D399;">-> Quando o Backend solicita Atlas ou Gemini, o VR traduz o IP privado da VM para o IP Público oficial para navegar na Internet</li>
+                </ul>
+              </div>
+            </div>
+
+            <div style="display: flex; justify-content: space-around; margin: 10px 0;">
+              <span class="connector-badge badge-blue editable-text" contenteditable="true">DNAT -> Web [TCP 4000]</span>
+              <span class="connector-badge editable-text" contenteditable="true">3. Envia ao Gateway [Roteamento SNAT]</span>
+              <span class="connector-badge badge-blue editable-text" contenteditable="true">DNAT -> Backend [TCP 5000]</span>
+            </div>
+
+            <div class="grid-vms">
+              
+              <div class="card-box card-green" style="min-height: 380px;">
+                <div class="card-topbar">
+                  <span class="badge-pill badge-green editable-text" contenteditable="true">1ª VM</span>
+                  <span class="card-title editable-text" contenteditable="true">FRONTEND WEB</span>
+                </div>
+                <div class="card-subtitle editable-text" contenteditable="true">NotaGest_FrontReact (Porta :4000)</div>
+
+                <div class="card-body green-bullets">
+                  <ul>
+                    <li class="editable-text" contenteditable="true"><strong>IP PRIVADO:</strong> 192.168.1.10</li>
+                    <li class="editable-text" contenteditable="true"><strong>TECNOLOGIA:</strong> Next.js / React</li>
+                  </ul>
+
+                  <div class="card-section-title editable-text" contenteditable="true">• ENTRADA:</div>
+                  <ul>
+                    <li class="editable-text" contenteditable="true">Recebe requisições externas via Port Forwarding do VR (:4000).</li>
+                  </ul>
+
+                  <div class="card-section-title editable-text" contenteditable="true">• COMUNICAÇÃO COM BACKEND:</div>
+                  <ul>
+                    <li class="editable-text" contenteditable="true">Para exibir dashboards e notas, o Web consome a API do Backend direto na Guest Network local:</li>
+                    <li class="editable-text" contenteditable="true" style="color:#34D399;">-> http://192.168.1.20:5000</li>
+                  </ul>
+
+                  <div class="card-section-title editable-text" contenteditable="true">• BENEFÍCIO:</div>
+                  <ul>
+                    <li class="editable-text" contenteditable="true">Tráfego interno ultrarrápido sem consumir banda de internet!</li>
+                  </ul>
+                </div>
+              </div>
+
+              <div class="card-box card-purple" style="min-height: 380px;">
+                <div class="card-topbar">
+                  <span class="badge-pill badge-purple editable-text" contenteditable="true">2ª VM</span>
+                  <span class="card-title editable-text" contenteditable="true">SERVIDOR BACKEND</span>
+                </div>
+                <div class="card-subtitle editable-text" contenteditable="true">NotaGest_Backend (Porta :5000)</div>
+
+                <div class="card-body purple-bullets">
+                  <ul>
+                    <li class="editable-text" contenteditable="true"><strong>IP PRIVADO:</strong> 192.168.1.20</li>
+                    <li class="editable-text" contenteditable="true"><strong>TECNOLOGIA:</strong> Node.js / Express</li>
+                  </ul>
+
+                  <div class="card-section-title editable-text" contenteditable="true">• ENTRADA:</div>
+                  <ul>
+                    <li class="editable-text" contenteditable="true">1. Requisições do Frontend Web</li>
+                    <li class="editable-text" contenteditable="true">2. Requisições do App Mobile</li>
+                    <li class="editable-text" contenteditable="true">3. Validação rigorosa com Zod</li>
+                  </ul>
+
+                  <div class="card-section-title editable-text" contenteditable="true">• SAÍDA PARA A NUVEM:</div>
+                  <ul>
+                    <li class="editable-text" contenteditable="true">Quando precisa salvar ou ler dados, envia pacotes para o Gateway (VR):</li>
+                    <li class="editable-text" contenteditable="true" style="color:#818CF8;">-> VR aplica Source NAT</li>
+                    <li class="editable-text" contenteditable="true" style="color:#818CF8;">-> Conecta no MongoDB Atlas</li>
+                    <li class="editable-text" contenteditable="true" style="color:#818CF8;">-> Conecta no Google Gemini</li>
+                  </ul>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+        <div class="column-right">
+          <div class="dashed-zone zone-green">
+            <div class="zone-header">
+              <div class="zone-title editable-text" contenteditable="true" style="color:#10B981;">NUVEM EXTERNA / INTERNET PÚBLICA</div>
+              <div class="zone-subtitle editable-text" contenteditable="true">Persistência de Dados Reais e Modelos de Inteligência Artificial</div>
+            </div>
+
+            <div class="card-box card-green" style="min-height: 340px;">
+              <div class="card-topbar">
+                <span class="badge-pill badge-green editable-text" contenteditable="true">BANCO REAL</span>
+                <span class="card-title editable-text" contenteditable="true">MONGODB ATLAS</span>
+              </div>
+              <div class="card-subtitle editable-text" contenteditable="true">clusterdsm3.q0edok0.mongodb.net</div>
+
+              <div class="card-body green-bullets">
+                <ul>
+                  <li class="editable-text" contenteditable="true"><strong>LOCAL DOS DADOS DE PRODUÇÃO</strong></li>
+                  <li class="editable-text" contenteditable="true"><strong>PORTA:</strong> 27017 (TLS Seguro)</li>
+                  <li class="editable-text" contenteditable="true"><strong>STRING:</strong> mongodb+srv://Ranzer:...</li>
+                </ul>
+
+                <div class="card-section-title editable-text" contenteditable="true">• DADOS ARMAZENADOS:</div>
+                <ul>
+                  <li class="editable-text" contenteditable="true">Usuários e Senhas criptografadas</li>
+                  <li class="editable-text" contenteditable="true">Imóveis, Locatários e Unidades</li>
+                  <li class="editable-text" contenteditable="true">Notas Fiscais e Despesas</li>
+                </ul>
+
+                <div class="card-section-title editable-text" contenteditable="true">• REGRA DE SEGURANÇA:</div>
+                <ul>
+                  <li class="editable-text" contenteditable="true">O IP Público do Virtual Router deve estar autorizado na Whitelist do Atlas!</li>
+                </ul>
+
+                <div style="margin-top: 10px; text-align: center;">
+                  <span class="connector-badge editable-text" contenteditable="true">3A. Persistência Real [TLS :27017]</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="card-box card-cyan" style="min-height: 310px;">
+              <div class="card-topbar">
+                <span class="badge-pill badge-cyan editable-text" contenteditable="true">IA GENERATIVA</span>
+                <span class="card-title editable-text" contenteditable="true">GOOGLE GEMINI API</span>
+              </div>
+              <div class="card-subtitle editable-text" contenteditable="true">generativelanguage.googleapis.com</div>
+
+              <div class="card-body">
+                <ul>
+                  <li class="editable-text" contenteditable="true"><strong>MOTOR DE OCR INTELIGENTE</strong></li>
+                  <li class="editable-text" contenteditable="true"><strong>PROTOCOLO:</strong> HTTPS (Porta 443)</li>
+                  <li class="editable-text" contenteditable="true"><strong>AUTENTICAÇÃO:</strong> GEMINI_API_KEY</li>
+                </ul>
+
+                <div class="card-section-title editable-text" contenteditable="true">• FLUXO OPERACIONAL:</div>
+                <ul>
+                  <li class="editable-text" contenteditable="true">1. Backend envia a foto do comprovante</li>
+                  <li class="editable-text" contenteditable="true">2. Gemini extrai CNPJ, total e itens</li>
+                  <li class="editable-text" contenteditable="true">3. Retorna estrutura JSON validada</li>
+                  <li class="editable-text" contenteditable="true">4. Backend grava a despesa no Atlas</li>
+                </ul>
+
+                <div style="margin-top: 10px; text-align: center;">
+                  <span class="connector-badge editable-text" contenteditable="true">3B. Extração OCR [HTTPS :443]</span>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+
+      <div class="summary-footer">
+        <h3 class="editable-text" contenteditable="true">RESUMO OPERACIONAL DOS 3 FLUXOS DE REDE:</h3>
+        <p class="summary-flow editable-text" contenteditable="true">
+          <strong style="color:#38BDF8;">1. FLUXO DE ENTRADA (Inbound - Azul/Ciano):</strong> O usuário acessa o IP Público do Virtual Router -> O VR realiza Port Forwarding (DNAT) direcionando a porta 4000 para o Web e a porta 5000 para a API.
+        </p>
+        <p class="summary-flow editable-text" contenteditable="true">
+          <strong style="color:#10B981;">2. FLUXO INTERNO (Local - Verde):</strong> O Frontend Web se comunica diretamente com o Servidor Backend pela Guest Network privada isolada (http://192.168.1.20:5000), com velocidade local e zero consumo de banda WAN.
+        </p>
+        <p class="summary-flow editable-text" contenteditable="true">
+          <strong style="color:#F59E0B;">3. FLUXO DE SAÍDA (Outbound - Laranja):</strong> O Servidor Backend precisa acessar o MongoDB Atlas (:27017) ou Google Gemini (:443) -> Envia ao VR -> O VR mascara via Source NAT (SNAT) com o IP Público e entrega aos serviços na Internet.
+        </p>
+      </div>
+
+    </div>
+  </main>
+
+  <script>
+    function saveToStorage() {
+      const canvasHtml = document.getElementById('diagramCanvas').innerHTML;
+      localStorage.setItem('notagest_diagram_custom_html', canvasHtml);
+      alert('Layout e textos salvos com sucesso no seu navegador!');
+    }
+
+    function resetToDefault() {
+      if (confirm('Deseja resetar todos os textos para os valores originais da imagem?')) {
+        localStorage.removeItem('notagest_diagram_custom_html');
+        location.reload();
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      const saved = localStorage.getItem('notagest_diagram_custom_html');
+      if (saved) {
+        document.getElementById('diagramCanvas').innerHTML = saved;
+      }
+    });
+
+    function exportAsNewImage() {
+      const canvasEl = document.getElementById('diagramCanvas');
+      alert('Gerando sua nova imagem PNG... Aguarde alguns instantes!');
+      
+      html2canvas(canvasEl, {
+        scale: 2,
+        backgroundColor: '#050B14',
+        useCORS: true,
+        logging: false
+      }).then(canvas => {
+        const link = document.createElement('a');
+        link.download = 'comunicacao_cloudstack_personalizada.png';
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+      }).catch(err => {
+        alert('Erro ao gerar imagem: ' + err);
+      });
+    }
+  </script>
+</body>
+</html>
