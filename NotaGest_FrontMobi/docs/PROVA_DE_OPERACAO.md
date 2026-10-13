@@ -9,7 +9,7 @@
 - **Responsável Técnico:** Equipe de Desenvolvimento
 - **Papel do Mentor/Arquiteto:** Lead Architect & Master Mentor
 - **Data de Início:** 19/09/2026
-- **Status:** Em Andamento (Fase 1 — Scaffolding e Infraestrutura)
+- **Status:** Concluído / Em Produção (Fase 13 — Esteira de CI/CD, SemVer e 100% de Cobertura de Testes)
 
 ---
 
@@ -330,6 +330,25 @@ Migrar a experiência do sistema NotaGest do ecossistema Web (Next.js 15) para u
    6. *Métricas Consolidadas da Fase 12:*
       - **Tipagem Estática:** `npx tsc --noEmit` aprovado com 0 erros no backend.
       - **Diretriz de Código:** 100% de conformidade com a política de Zero Comentários.
+- **FASE 13: Engenharia de CI/CD, Paridade de Esteira, SonarCloud e Cobertura Total de Testes:**
+   1. *Unificação da Esteira de CI/CD e Paridade Operacional:*
+      - Criação e alinhamento dos workflows `.github/workflows/mobile-ci.yml` (raiz do monorepo) e `NotaGest_FrontMobi/.github/workflows/main.yml`.
+      - Integração com **SonarCloud Scan** (`sonar-project.properties`) para análise estática e auditoria de qualidade.
+      - Versionamento semântico automatizado (**SemVer**) baseado no histórico de Conventional Commits (`feat:`, `fix:`, `BREAKING CHANGE`).
+      - Automação de empacotamento Docker multi-tag (`latest`, `dev`, `v0.0.1`) e publicação no Docker Hub (`notagest-mobile`).
+      - Configuração de alertas de falha via email (`dawidd6/action-send-mail@v3`).
+      - Estágios de homologação (`deploy-hml`) e produção (`deploy-prod`).
+   2. *Diagnóstico Arquitetural e Correção do Threshold de Testes Unitários:*
+      - Diagnóstico da quebra no CI/CD decorrente da chave `collectCoverageFrom` no [jest.config.js](../jest.config.js), que avaliava telas (`src/app/**`) e componentes (`src/components/**`) sem suítes unitárias, gerando 0% de cobertura.
+      - Delimitação do escopo unitário estrito para camadas de domínio, utilitários puros e adaptadores de persistência segura (`src/domain/**`, `src/core/utils/**`, `src/core/storage/**`).
+      - Expansão da suíte de testes em [secureStorage.spec.ts](../src/core/storage/secureStorage.spec.ts) para cobrir resiliência de ambiente web sem `localStorage` e sem objeto global `window`.
+      - Expansão da suíte em [dateUtils.spec.ts](../src/core/utils/dateUtils.spec.ts) cobrindo formatação e parsing defensivo de datas BRL/ISO.
+      - Expansão de [invoiceService.spec.ts](../src/domain/invoice/invoiceService.spec.ts) para cobrir o fallback de nomenclatura padrão de arquivo (`invoice.jpg`).
+   3. *Métricas Consolidadas da Fase 13:*
+      - **Total de Testes Unitários:** 58 testes passando em 8 suítes (100% de aprovação).
+      - **Cobertura Individual por Arquivo (`perFile: true`):** **100% em todas as 4 dimensões** (Statements: 100%, Branches: 100%, Functions: 100%, Lines: 100%).
+      - **Validação de CI/CD em Nuvem:** Pipeline executado com sucesso e tag de release semântica `mobile-release: version 0.0.1` gerada automaticamente no GitHub Actions.
+      - **Diretriz de Código:** 100% de conformidade com a política de Zero Comentários no código-fonte.
 
 ---
 

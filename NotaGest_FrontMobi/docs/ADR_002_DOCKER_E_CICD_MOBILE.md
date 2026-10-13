@@ -56,3 +56,4 @@ Para a versão mobile (`NotaGest_FrontMobi`), era necessário:
 - Facilidade de replicação do ambiente em qualquer máquina sem necessidade de instalar Node ou dependências locais.
 - Garantia de que nenhuma imagem com testes quebrados ou cobertura inferior ao requisito será enviada ao Docker Hub.
 - Conformidade e uniformidade total com o padrão estabelecido no `NotaGest_FrontReact`.
+- Isolamento arquitetural de escopo de cobertura no Jest (`perFile: true` ≥ 95%): coleta delimitada rigorosamente às camadas de domínio, utilitários e armazenamento (testes unitários), garantindo 100% de cobertura sem ruídos de componentes de tela e views de interface.
