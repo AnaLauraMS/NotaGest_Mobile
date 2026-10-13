@@ -35,14 +35,18 @@ Para a versão mobile (`NotaGest_FrontMobi`), era necessário:
 - Comunicação via rede compartilhada `notagest-network`.
 
 ### 2.3. Pipeline GitHub Actions (`mobile-ci.yml`)
-- **Gatilhos:** Pushes nas branches `main` e `development` com filtro de caminho restrito a `NotaGest_FrontMobi/**`.
+- **Gatilhos:** Pushes nas branches `main`, `development` e `feat/story-book` com filtro de caminho restrito a `NotaGest_FrontMobi/**`.
 - **Passos Sequenciais:**
-  1. Checkout e Setup de Node 22.
+  1. Checkout e Setup de Node 22 com `token: ${{ secrets.GITHUB_TOKEN }}` e `fetch-depth: 0`.
   2. `npm install --legacy-peer-deps`.
-  3. `npm run test:coverage` (Execução de testes com validação de cobertura).
-  4. Autenticação no Docker Hub via `docker/login-action`.
-  5. Build e Push da imagem (`notagest-mobile:dev` para desenvolvimento e `notagest-mobile:latest` para main).
-  6. Disparo de email de notificação em caso de quebra de esteira.
+  3. `npm run test:coverage` (Execução de testes automatizados AAA com validação de cobertura).
+  4. Varredura estática de qualidade e cobertura via **SonarCloud Scan** (`sonar-project.properties`).
+  5. Autenticação no Docker Hub via `docker/login-action@v3`.
+  6. Cálculo automático de versão semântica via **SemVer** baseado no histórico de Conventional Commits (`feat:`, `fix:`, `BREAKING CHANGE`).
+  7. Atualização do `package.json`, commit e criação de tag Git (`mobile-vX.Y.Z`).
+  8. Build e Push da imagem Docker (`notagest-mobile:dev` para desenvolvimento e `notagest-mobile:latest` + `notagest-mobile:v${version}` para main).
+  9. Notificação por email de falha via `dawidd6/action-send-mail@v3`.
+  10. Estágios de entrega contínua para homologação (`deploy-hml`) e produção (`deploy-prod`).
 
 ---
 
