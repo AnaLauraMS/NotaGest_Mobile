@@ -166,7 +166,7 @@ describe('InvoiceService', () => {
 
     (httpClient.post as jest.Mock).mockResolvedValueOnce({ data: mockAiResponse });
 
-    const result = await InvoiceService.extractInvoiceWithAi('simple_path');
+    const result = await InvoiceService.extractInvoiceWithAi('folder/');
 
     expect(httpClient.post).toHaveBeenCalledTimes(1);
     expect(result.data.title).toBe('Recibo Balcão');

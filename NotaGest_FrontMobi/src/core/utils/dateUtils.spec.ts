@@ -24,6 +24,18 @@ describe('dateUtils', () => {
       expect(formatToBrlDate(undefined)).toBe('Data n/d');
       expect(formatToBrlDate('')).toBe('Data n/d');
     });
+
+    it('should return raw string when hyphenated format has invalid parts length', () => {
+      expect(formatToBrlDate('2021-10')).toBe('2021-10');
+    });
+
+    it('should return raw string when year length is not four digits', () => {
+      expect(formatToBrlDate('21-10-29')).toBe('21-10-29');
+    });
+
+    it('should return raw string when format lacks hyphen or slash', () => {
+      expect(formatToBrlDate('20211029')).toBe('20211029');
+    });
   });
 
   describe('parseBrlDateToIso', () => {
@@ -33,6 +45,14 @@ describe('dateUtils', () => {
 
     it('should return non-slash string directly', () => {
       expect(parseBrlDateToIso('2021-10-29')).toBe('2021-10-29');
+    });
+
+    it('should return raw string when slash format has invalid parts length', () => {
+      expect(parseBrlDateToIso('29/10')).toBe('29/10');
+    });
+
+    it('should return raw string when slash format has invalid year length', () => {
+      expect(parseBrlDateToIso('29/10/21')).toBe('29/10/21');
     });
   });
 

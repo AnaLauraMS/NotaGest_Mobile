@@ -11,6 +11,7 @@ jest.mock('expo-secure-store', () => ({
 
 describe('SecureStorageService', () => {
   const originalPlatform = Platform.OS;
+  const originalWindow = (globalThis as any).window;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -19,6 +20,7 @@ describe('SecureStorageService', () => {
 
   afterEach(() => {
     Platform.OS = originalPlatform;
+    (globalThis as any).window = originalWindow;
   });
 
   describe('Native Platform', () => {
@@ -68,10 +70,7 @@ describe('SecureStorageService', () => {
 
     beforeEach(() => {
       Platform.OS = 'web';
-      Object.defineProperty(globalThis, 'window', {
-        value: { localStorage: mockLocalStorage },
-        writable: true,
-      });
+      (globalThis as any).window = { localStorage: mockLocalStorage };
     });
 
     it('should save token into localStorage on web', async () => {
@@ -106,6 +105,28 @@ describe('SecureStorageService', () => {
       expect(mockLocalStorage.removeItem).toHaveBeenCalledWith(StorageKey.AuthToken);
       expect(mockLocalStorage.removeItem).toHaveBeenCalledWith(StorageKey.UserData);
       expect(SecureStore.deleteItemAsync).not.toHaveBeenCalled();
+    });
+
+    it('should handle web when localStorage is undefined', async () => {
+      (globalThis as any).window = {};
+
+      await SecureStorageService.saveToken('token');
+      const token = await SecureStorageService.getToken();
+      expect(token).toBeNull();
+      await SecureStorageService.removeToken();
+      await SecureStorageService.clearAll();
+      expect(SecureStore.setItemAsync).not.toHaveBeenCalled();
+    });
+
+    it('should handle web when window is undefined', async () => {
+      delete (globalThis as any).window;
+
+      await SecureStorageService.saveToken('token');
+      const token = await SecureStorageService.getToken();
+      expect(token).toBeNull();
+      await SecureStorageService.removeToken();
+      await SecureStorageService.clearAll();
+      expect(SecureStore.setItemAsync).not.toHaveBeenCalled();
     });
   });
 });
