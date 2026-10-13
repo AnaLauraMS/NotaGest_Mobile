@@ -349,6 +349,11 @@ Migrar a experiência do sistema NotaGest do ecossistema Web (Next.js 15) para u
       - **Cobertura Individual por Arquivo (`perFile: true`):** **100% em todas as 4 dimensões** (Statements: 100%, Branches: 100%, Functions: 100%, Lines: 100%).
       - **Validação de CI/CD em Nuvem:** Pipeline executado com sucesso e tag de release semântica `mobile-release: version 0.0.1` gerada automaticamente no GitHub Actions.
       - **Diretriz de Código:** 100% de conformidade com a política de Zero Comentários no código-fonte.
+   4. *Compilação e Atualização do Binário Nativo Standalone (Android Release):*
+      - Execução da automação Gradle: `BUILD SUCCESSFUL in 3m 35s` (491 tarefas de compilação).
+      - Estabilidade de compilação: ajuste de JVM para heap fixo `-Xms2048m -Xmx2048m` e desativação de análises concorrentes de lint na montagem local (`lint { checkReleaseBuilds false }`).
+      - Identidade corporativa verificada: ícone adaptativo Android oficial da marca NotaGest (`res/BW.xml` / `ic_launcher`) devidamente empacotado.
+      - Atualização do executável nativo raiz: [NotaGest.apk](../../NotaGest.apk) (39.048.583 bytes / ~37,2 MB) gerado com ofuscação R8 e Hermes Bytecode AOT.
 
 ---
 
