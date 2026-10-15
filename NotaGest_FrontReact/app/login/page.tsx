@@ -6,6 +6,7 @@ import Image from "next/image";
 import Logo from "../../assets/LogoNotaGestLogin.png";
 import { MdOutlineVisibility, MdOutlineVisibilityOff } from "react-icons/md";
 import { FaArrowLeft } from "react-icons/fa";
+import { getAuthServiceUrl } from "../../utils/authService";
 
 type Credentials = {
   email: string;
@@ -34,7 +35,8 @@ export default function Login() {
     setLoading(true);
 
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_AUTH_SERVICE_URL}/login`, {
+      const authUrl = getAuthServiceUrl();
+      const res = await fetch(`${authUrl}/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

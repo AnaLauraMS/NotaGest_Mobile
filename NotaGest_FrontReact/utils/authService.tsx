@@ -1,29 +1,37 @@
 
-const AUTH_URL = process.env.NEXT_PUBLIC_AUTH_SERVICE_URL;
+export function getAuthServiceUrl(): string {
+  const envAuth = process.env.NEXT_PUBLIC_AUTH_SERVICE_URL;
+  const envBackend = process.env.NEXT_PUBLIC_BACKEND_URL;
 
-// Interface para os dados necessários no registro
+  let base = envAuth || (envBackend ? `${envBackend.replace(/\/+$/, '')}/api/users` : '');
+  if (!base) {
+    base = 'https://notagest-0o2r.onrender.com/api/users';
+  }
+
+  base = base.replace(/\/+$/, '');
+  if (!base.endsWith('/api/users')) {
+    base = `${base}/api/users`;
+  }
+
+  return base;
+}
+
 interface RegisterData {
     nome: string;
     email: string;
     senha: string;
 }
 
-// Interface para a resposta esperada da rota de login
 interface LoginResponse {
     error: string;
     token: string;
     message: string;
 }
 
-/**
- * @function registerUser
- * @description Envia credenciais para o serviço de autenticação para criar uma nova conta.
- * @returns {Promise<string>} Mensagem de sucesso.
- * @throws {Error} Mensagem de erro em caso de falha.
- */
 export async function registerUser(nome: string, email: string, senha: string) {
     try {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_AUTH_SERVICE_URL}/register`, {
+        const authUrl = getAuthServiceUrl();
+        const res = await fetch(`${authUrl}/register`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ nome, email, senha }),
@@ -32,7 +40,6 @@ export async function registerUser(nome: string, email: string, senha: string) {
         const data = await res.json();
 
         if (!res.ok) {
-            // Se o status não for 200, lança o erro com a mensagem do microserviço
             throw new Error(data.message || "Erro ao registrar usuário.");
         }
 
@@ -43,18 +50,9 @@ export async function registerUser(nome: string, email: string, senha: string) {
     }
 }
 
-/**
- * @function loginUser
- * @description Envia credenciais para o serviço de autenticação para obter um token JWT.
- * @returns {Promise<LoginResponse>} Objeto contendo o token de sessão.
- * @throws {Error} Mensagem de erro em caso de credenciais inválidas ou falha na API.
- */
 export async function loginUser(email: string, senha: string): Promise<LoginResponse> {
-    // Verifica a configuração
-    if (!AUTH_URL) throw new Error("URL do serviço de autenticação não configurada.");
-
-    // Faz a chamada de API (POST) para a rota de login
-    const response = await fetch(`${AUTH_URL}/login`, {
+    const authUrl = getAuthServiceUrl();
+    const response = await fetch(`${authUrl}/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ email, senha })

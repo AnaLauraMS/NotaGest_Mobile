@@ -3,8 +3,7 @@
 import axios from 'axios';
 
 const api = axios.create({
-  
-    baseURL: process.env.NEXT_PUBLIC_BACKEND_URL, 
+    baseURL: process.env.NEXT_PUBLIC_BACKEND_URL || 'https://notagest-0o2r.onrender.com', 
 });
 
 api.interceptors.request.use(
