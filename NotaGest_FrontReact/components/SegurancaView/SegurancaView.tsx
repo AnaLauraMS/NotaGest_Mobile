@@ -4,6 +4,7 @@ import { CheckCircleIcon, XCircleIcon, ShieldCheckIcon, LockClosedIcon, DeviceTa
 import { EyeIcon, EyeSlashIcon } from '@heroicons/react/24/outline';
 
 import Swal from 'sweetalert2';
+import { getBackendUrl } from '../../utils/api';
 
 // Validação de senha
 const validatePassword = (password: string) => ({
@@ -71,7 +72,8 @@ const SegurancaView: React.FC = () => {
     setLoading(true);
     try {
       const token = localStorage.getItem('token');
-      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/users/change-password`, {
+      const backendUrl = getBackendUrl();
+      const res = await fetch(`${backendUrl}/api/users/change-password`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ currentPassword, newPassword }),

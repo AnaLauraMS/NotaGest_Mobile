@@ -18,6 +18,7 @@ import { useRouter } from 'next/navigation';
 import SegurancaView from '../../components/SegurancaView/SegurancaView';
 import PerfilView from '../../components/PerfilView/PerfilView';
 import ChatView from '../../components/ChatView/ChatView';
+import { getBackendUrl } from '../../utils/api';
 
 const Graphics = dynamic(() => import("../../components/Graphics/Graphics"), { ssr: false });
 
@@ -75,7 +76,8 @@ const UploadsPage = () => {
   --------------------------*/
   const fetchFiles = async () => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/uploads`, {
+      const backendUrl = getBackendUrl();
+      const response = await fetch(`${backendUrl}/api/uploads`, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
 
@@ -94,7 +96,8 @@ const UploadsPage = () => {
   --------------------------*/
   const handleListProperties = async () => {
     try {
-      const response = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/imoveis`, {
+      const backendUrl = getBackendUrl();
+      const response = await fetch(`${backendUrl}/api/imoveis`, {
         headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
       });
 

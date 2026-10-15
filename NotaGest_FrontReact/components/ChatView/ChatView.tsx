@@ -3,6 +3,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import axios from 'axios';
 import { PaperAirplaneIcon, SparklesIcon, UserCircleIcon, CpuChipIcon } from '@heroicons/react/24/outline';
+import { getBackendUrl } from '../../utils/api';
 
 interface Message {
     id: string;
@@ -24,7 +25,7 @@ const ChatView: React.FC = () => {
     const [loading, setLoading] = useState(false);
     const messagesEndRef = useRef<HTMLDivElement>(null);
 
-    const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
+    const BASE_URL = getBackendUrl();
 
     const scrollToBottom = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });

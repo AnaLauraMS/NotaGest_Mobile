@@ -3,8 +3,9 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { IoTrashBinSharp, IoDownloadOutline, IoPencilOutline } from 'react-icons/io5';
 import Swal from 'sweetalert2';
+import { getBackendUrl } from '../../utils/api';
 
-const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
+const BASE_URL = getBackendUrl();
 
 interface FileData {
   _id: string;

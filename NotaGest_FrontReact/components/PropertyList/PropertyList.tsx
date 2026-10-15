@@ -3,6 +3,7 @@
 import React, { useState, useMemo } from 'react';
 import { IoTrashBinSharp } from 'react-icons/io5';
 import Swal from 'sweetalert2';
+import { getBackendUrl } from '../../utils/api';
 
 interface PropertyDataForUI {
   _id: string;
@@ -29,7 +30,7 @@ const PropertyList: React.FC<PropertyListProps> = ({ properties: initialProperti
   const [currentPage, setCurrentPage] = useState(1);
 
   const ITEMS_PER_PAGE = 10;
-  const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
+  const BASE_URL = getBackendUrl();
 
 
 

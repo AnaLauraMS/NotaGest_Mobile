@@ -3,6 +3,7 @@ import axios from 'axios';
 import { IoMdCloudUpload } from "react-icons/io";
 import React, { useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
+import { getBackendUrl } from '../../utils/api';
 import Button from '../ui/Button';
 import Input from '../ui/Input';
 import Select from '../ui/Select';
@@ -40,7 +41,7 @@ const AddFileView: React.FC<AddFileViewProps> = ({ onAddFile }) => {
     const [analyzing, setAnalyzing] = useState(false);
     const [aiFilePath, setAiFilePath] = useState<string | null>(null);
 
-    const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
+    const BASE_URL = getBackendUrl();
     const subcategories = ['Iluminação', 'Ferragem', 'Hidráulica', 'Acabamento', 'Pintura', 'Madeiramento', 'Outros'];
 
     // 🔹 Buscar imóveis do usuário logado

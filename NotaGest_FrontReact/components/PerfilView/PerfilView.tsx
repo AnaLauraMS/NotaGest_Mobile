@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { UserIcon, LockClosedIcon } from '@heroicons/react/24/outline';
 import Swal from 'sweetalert2';
+import { getBackendUrl } from '../../utils/api';
 
 interface User {
   _id: string;
@@ -34,7 +35,8 @@ const PerfilView: React.FC = () => {
         const token = localStorage.getItem('token');
         if (!token) throw new Error('Token não encontrado.');
 
-        const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/users/profile/me`, {
+        const backendUrl = getBackendUrl();
+        const res = await fetch(`${backendUrl}/api/users/profile/me`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -68,7 +70,8 @@ const PerfilView: React.FC = () => {
       setIsUpdating(true);
       const token = localStorage.getItem('token');
 
-      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/users/profile/me`, {
+      const backendUrl = getBackendUrl();
+      const res = await fetch(`${backendUrl}/api/users/profile/me`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ nome: formData.name }),
@@ -113,7 +116,8 @@ const PerfilView: React.FC = () => {
     try {
       const token = localStorage.getItem('token');
 
-      const res = await fetch(`${process.env.NEXT_PUBLIC_BACKEND_URL}/api/users/change-password`, {
+      const backendUrl = getBackendUrl();
+      const res = await fetch(`${backendUrl}/api/users/change-password`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

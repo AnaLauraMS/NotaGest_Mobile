@@ -1,6 +1,7 @@
 'use client';
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import { getBackendUrl } from "../../utils/api";
 
 interface Arquivo {
   _id: string;
@@ -12,7 +13,7 @@ const Cards: React.FC = () => {
   const [arquivos, setArquivos] = useState<Arquivo[]>([]);
   const [loading, setLoading] = useState(true);
 
-  const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
+  const BASE_URL = getBackendUrl();
 
   useEffect(() => {
     const fetchArquivos = async () => {

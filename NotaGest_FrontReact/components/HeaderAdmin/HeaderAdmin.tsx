@@ -2,8 +2,9 @@
 import React, { useRef, useState, useEffect } from 'react';
 import { UserCircleIcon, KeyIcon, ArrowRightStartOnRectangleIcon, ChevronDownIcon } from '@heroicons/react/24/outline';
 import { useRouter } from 'next/navigation';
+import { getBackendUrl } from '../../utils/api';
 
-const BASE_URL = process.env.NEXT_PUBLIC_BACKEND_URL;
+const BASE_URL = getBackendUrl();
 
 interface HeaderAdminProps {
   toggleSidebar: () => void;
