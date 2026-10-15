@@ -41,7 +41,8 @@
           "photosPermission": "O app precisa de acesso as suas fotos para anexar comprovantes e notas fiscais.",
           "cameraPermission": "O app precisa de acesso a camera para fotografar comprovantes e notas fiscais."
         }
-      ]
+      ],
+      "expo-sqlite"
     ],
     "experiments": {
       "typedRoutes": true,

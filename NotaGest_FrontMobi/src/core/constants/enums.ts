@@ -39,3 +39,26 @@ export enum InvoiceCategory {
   Impostos = 'Impostos',
   Outros = 'Outros',
 }
+
+export enum SyncStatus {
+  Synced = 'SYNCED',
+  PendingCreate = 'PENDING_CREATE',
+  PendingUpdate = 'PENDING_UPDATE',
+  PendingDelete = 'PENDING_DELETE',
+}
+
+export enum SyncAction {
+  Create = 'CREATE',
+  Update = 'UPDATE',
+  Delete = 'DELETE',
+}
+
+export enum SyncEntityType {
+  Invoice = 'INVOICE',
+  Property = 'PROPERTY',
+}
+
+export enum DatabaseConfig {
+  Name = 'notagest.db',
+}
+

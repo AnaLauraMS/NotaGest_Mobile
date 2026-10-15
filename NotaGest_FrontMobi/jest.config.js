@@ -10,6 +10,8 @@ module.exports = {
     'src/domain/**/*.ts',
     'src/core/utils/**/*.ts',
     'src/core/storage/**/*.ts',
+    'src/core/database/**/*.ts',
+    '!src/core/database/migrations.ts',
     '!src/**/schemas.ts',
     '!src/**/*.d.ts',
     '!src/**/types.ts',
