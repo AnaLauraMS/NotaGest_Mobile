@@ -36,7 +36,7 @@ const PerfilView: React.FC = () => {
         if (!token) throw new Error('Token não encontrado.');
 
         const backendUrl = getBackendUrl();
-        const res = await fetch(`${backendUrl}/api/users/profile/me`, {
+        const res = await fetch(`${backendUrl}/api/users/me`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -60,9 +60,6 @@ const PerfilView: React.FC = () => {
     fetchProfile();
   }, []);
 
-  // ================================
-  // 🔹 ATUALIZAR PERFIL (NOME)
-  // ================================
   const handleUpdateProfile = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -71,7 +68,8 @@ const PerfilView: React.FC = () => {
       const token = localStorage.getItem('token');
 
       const backendUrl = getBackendUrl();
-      const res = await fetch(`${backendUrl}/api/users/profile/me`, {
+      const targetUrl = user?._id ? `${backendUrl}/api/users/${user._id}` : `${backendUrl}/api/users/me`;
+      const res = await fetch(targetUrl, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
         body: JSON.stringify({ nome: formData.name }),

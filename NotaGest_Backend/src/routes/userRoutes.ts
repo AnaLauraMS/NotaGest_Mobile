@@ -48,6 +48,26 @@ router.get('/me', protect, async (req: Request, res: Response) => {
   }
 });
 
+router.get('/profile/me', protect, async (req: Request, res: Response) => {
+  try {
+    logger.info('Buscando usuário logado (/profile/me)', { route: req.originalUrl });
+
+    const user = await User.findOne({ email: (req as any).user.email }).select('_id nome email');
+
+    if (!user) {
+      logger.info('Usuário não encontrado', { route: req.originalUrl });
+      return res.status(404).json({ message: 'Usuário não encontrado' });
+    }
+
+    logger.info('Usuário retornado com sucesso', { route: req.originalUrl });
+
+    res.json(user);
+  } catch (error: any) {
+    logger.error('Erro ao buscar usuário:', error.message);
+    res.status(500).json({ message: 'Erro ao buscar usuário' });
+  }
+});
+
 /**
  * @swagger
  * /api/users/byEmail/{email}:
@@ -88,8 +108,9 @@ router.get('/byEmail/:email', async (req: Request, res: Response) => {
   }
 });
 
-// As rotas abaixo já chamam o controller, o que é o padrão correto
 router.put('/change-password', protect, userController.changePassword);
+router.put('/me', protect, userController.updateUserProfile);
+router.put('/profile/me', protect, userController.updateUserProfile);
 router.post('/internal', userController.createProfileInternal);
 
 router.post('/register', userController.registerUser);

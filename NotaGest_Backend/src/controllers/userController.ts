@@ -16,8 +16,12 @@ import { logger } from '../utils/logger.js';
 
 // --- A. READ ---
 export const getUserProfile = async (req: IAuthRequest, res: Response) => {
-  const profileId = req.params.id;
+  let profileId: string | undefined = typeof req.params.id === 'string' ? req.params.id : undefined;
   const authenticatedUserId = req.user?.id;
+
+  if (!profileId || profileId === 'me') {
+    profileId = authenticatedUserId;
+  }
 
   logger.info('Iniciando busca de perfil', { route: req.originalUrl, userId: authenticatedUserId });
 
@@ -61,8 +65,12 @@ export const getUserProfile = async (req: IAuthRequest, res: Response) => {
 
 // --- B. UPDATE ---
 export const updateUserProfile = async (req: IAuthRequest, res: Response) => {
-  const profileId = req.params.id;
+  let profileId: string | undefined = typeof req.params.id === 'string' ? req.params.id : undefined;
   const authenticatedUserId = req.user?.id;
+
+  if (!profileId || profileId === 'me') {
+    profileId = authenticatedUserId;
+  }
 
   logger.info('Iniciando atualização de perfil', {
     route: req.originalUrl,
