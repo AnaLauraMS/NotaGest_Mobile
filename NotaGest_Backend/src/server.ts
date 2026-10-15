@@ -72,7 +72,7 @@ app.use(cors({
     'http://localhost:8082',
     "http://3.94.218.162:3000",
     "http://3.94.218.162:4000",
-    'https://nota-gest.vercel.app'
+    'https://notagest.vercel.app'
   ],
   methods: ['GET', 'POST', 'PUT', 'DELETE'],
   credentials: true
