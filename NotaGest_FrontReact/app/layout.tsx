@@ -1,18 +1,8 @@
 'use client';
 
 import { ReactNode, useEffect } from "react";
-import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
-
-// importa o NotificationProvider
 import { NotificationProvider } from "../context/NotificationContext";
-
-// fonte personalizada
-const jakarta = Plus_Jakarta_Sans({
-  variable: "--font-jakarta",
-  subsets: ["latin"],
-  weight: ["400", "500", "700"],
-});
 
 interface RootLayoutProps {
   children: ReactNode;
@@ -45,8 +35,8 @@ export default function RootLayout({ children }: RootLayoutProps) {
   }, []);
 
   return (
-    <html lang="en" className={jakarta.variable}>
-      <body className="font-jakarta antialiased">
+    <html lang="en">
+      <body className="antialiased">
         <NotificationProvider>
           {children}
         </NotificationProvider>
