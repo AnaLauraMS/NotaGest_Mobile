@@ -63,18 +63,27 @@ app.use(helmet({
   crossOriginResourcePolicy: { policy: "cross-origin" }
 }));
 
+const allowedOrigins = [
+  'http://localhost:3000',
+  'http://localhost:3001',
+  'http://localhost:4000',
+  'http://localhost:8081',
+  'http://localhost:8082',
+  'http://3.94.218.162:3000',
+  'http://3.94.218.162:4000',
+  'https://notagest.vercel.app',
+  'https://nota-gest.vercel.app',
+];
+
 app.use(cors({
-  origin: [
-    'http://localhost:3000',
-    'http://localhost:3001',
-    'http://localhost:4000',
-    'http://localhost:8081',
-    'http://localhost:8082',
-    "http://3.94.218.162:3000",
-    "http://3.94.218.162:4000",
-    'https://notagest.vercel.app'
-  ],
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  origin: (origin, callback) => {
+    if (!origin || allowedOrigins.includes(origin) || origin.endsWith('.vercel.app')) {
+      return callback(null, true);
+    }
+    return callback(new Error('Origem não permitida por CORS'));
+  },
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Origin', 'Accept', 'X-Requested-With'],
   credentials: true
 }));
 
