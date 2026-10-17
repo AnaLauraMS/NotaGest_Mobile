@@ -1,7 +1,7 @@
 {
   "name": "notagest_frontmobi",
   "main": "expo-router/entry",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "dependencies": {
     "@expo/ui": "~57.0.19",
     "axios": "^1.20.0",
