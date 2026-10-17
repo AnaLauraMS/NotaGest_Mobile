@@ -3,7 +3,7 @@
 import axios from 'axios';
 
 export function getBackendUrl(): string {
-    const url = process.env.NEXT_PUBLIC_BACKEND_URL || 'https://notagest-0o2r.onrender.com';
+    const url = process.env.NEXT_PUBLIC_BACKEND_URL ?? 'https://notagest-0o2r.onrender.com';
     return url.replace(/\/+$/, '');
 }
 

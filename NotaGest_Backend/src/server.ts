@@ -80,6 +80,9 @@ app.use(cors({
     if (!origin || allowedOrigins.includes(origin) || origin.endsWith('.vercel.app')) {
       return callback(null, true);
     }
+    if (origin.endsWith('.trycloudflare.com') || origin.includes('ngrok')) {
+      return callback(null, true);
+    }
     return callback(new Error('Origem não permitida por CORS'));
   },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],

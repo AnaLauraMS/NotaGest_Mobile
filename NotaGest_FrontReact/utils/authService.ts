@@ -3,7 +3,7 @@ export function getAuthServiceUrl(): string {
   const envAuth = process.env.NEXT_PUBLIC_AUTH_SERVICE_URL;
   const envBackend = process.env.NEXT_PUBLIC_BACKEND_URL;
 
-  let base = envAuth || envBackend || 'https://notagest-0o2r.onrender.com';
+  let base = envAuth ?? envBackend ?? 'https://notagest-0o2r.onrender.com';
   base = base.replace(/\/+$/, '');
   base = base.replace(/(\/api\/users)+$/, '');
   base = base.replace(/\/api$/, '');
