@@ -15,6 +15,9 @@ import { Receipt, Camera, Sparkles, Plus } from 'lucide-react-native';
 import * as ImagePicker from 'expo-image-picker';
 
 import { InvoiceService } from '@/domain/invoice/invoiceService';
+import { SyncService } from '@/domain/sync/syncService';
+import { InvoiceLocalRepository } from '@/domain/invoice/invoiceLocalRepository';
+import { InvoiceLocalEntity } from '@/domain/invoice/types';
 import { InvoiceResponse, CreateInvoiceRequest } from '@/domain/invoice/schemas';
 import { PropertyService } from '@/domain/property/propertyService';
 import { PropertySimpleName } from '@/domain/property/schemas';
@@ -23,6 +26,23 @@ import { InvoiceCard } from '@/components/invoice/InvoiceCard';
 import { InvoiceCaptureSheet } from '@/components/invoice/InvoiceCaptureSheet';
 import { AiProcessingOverlay } from '@/components/invoice/AiProcessingOverlay';
 import { InvoiceFormModal, InvoiceFormData } from '@/components/invoice/InvoiceFormModal';
+
+function mapLocalToResponse(item: InvoiceLocalEntity): InvoiceResponse {
+  return {
+    _id: item.id,
+    title: item.title,
+    value: item.value,
+    purchaseDate: item.purchaseDate,
+    property: item.propertyId
+      ? { _id: item.propertyId, nome: item.propertyName || 'Imóvel' }
+      : null,
+    category: item.category,
+    subcategory: item.subcategory,
+    observation: item.observation || '',
+    filePath: item.filePath || '',
+    createdAt: item.createdAt,
+  };
+}
 
 const CATEGORIES = [
   'Construção',
@@ -61,10 +81,15 @@ export default function InvoicesScreen() {
 
   const fetchInvoices = async () => {
     try {
-      const data = await InvoiceService.getInvoices();
-      setInvoices(data);
+      const local = await InvoiceLocalRepository.getInvoices();
+      if (local.length > 0) {
+        setInvoices(local.map(mapLocalToResponse));
+      }
+      const fresh = await SyncService.syncAll();
+      setInvoices(fresh.map(mapLocalToResponse));
     } catch {
-      setInvoices([]);
+      const fallbackLocal = await InvoiceLocalRepository.getInvoices();
+      setInvoices(fallbackLocal.map(mapLocalToResponse));
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);
@@ -192,12 +217,13 @@ export default function InvoicesScreen() {
   const handleSaveInvoice = async (payload: CreateInvoiceRequest) => {
     try {
       setIsSubmitting(true);
-      await InvoiceService.createInvoice(payload);
+      const matchedProperty = properties.find((p) => p._id === payload.property);
+      await SyncService.saveInvoiceOfflineFirst(payload, matchedProperty?.nome);
       setIsFormModalOpen(false);
       resetForm();
-      fetchInvoices();
+      await fetchInvoices();
     } catch (err: any) {
-      Alert.alert('Erro ao Salvar', err?.response?.data?.error || err.message || 'Falha ao salvar nota fiscal.');
+      Alert.alert('Erro ao Salvar', err?.message || 'Falha ao salvar nota fiscal.');
     } finally {
       setIsSubmitting(false);
     }
@@ -214,7 +240,7 @@ export default function InvoicesScreen() {
           style: 'destructive',
           onPress: async () => {
             try {
-              await InvoiceService.deleteInvoice(id);
+              await SyncService.deleteInvoiceOfflineFirst(id);
               setInvoices((prev) => prev.filter((inv) => inv._id !== id));
             } catch {
               Alert.alert('Erro', 'Não foi possível excluir a nota fiscal.');

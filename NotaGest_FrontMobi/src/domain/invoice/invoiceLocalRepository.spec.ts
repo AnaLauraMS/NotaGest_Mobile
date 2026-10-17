@@ -217,6 +217,8 @@ describe('InvoiceLocalRepository', () => {
           property: 'prop-string-id',
           category: 'Agregados',
           subcategory: 'Areia Média',
+          observation: '',
+          filePath: '',
         },
         {
           _id: 'rem-3',
@@ -226,6 +228,8 @@ describe('InvoiceLocalRepository', () => {
           property: null,
           category: 'Agregados',
           subcategory: 'Brita 1',
+          observation: '',
+          filePath: '',
         },
       ];
 

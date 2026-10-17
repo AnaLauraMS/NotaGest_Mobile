@@ -29,6 +29,26 @@ import { PropertyService } from '@/domain/property/propertyService';
 import { PropertyResponse } from '@/domain/property/schemas';
 import { InvoiceService } from '@/domain/invoice/invoiceService';
 import { InvoiceResponse } from '@/domain/invoice/schemas';
+import { SyncService } from '@/domain/sync/syncService';
+import { InvoiceLocalRepository } from '@/domain/invoice/invoiceLocalRepository';
+import { InvoiceLocalEntity } from '@/domain/invoice/types';
+
+function mapLocalToResponse(item: InvoiceLocalEntity): InvoiceResponse {
+  return {
+    _id: item.id,
+    title: item.title,
+    value: item.value,
+    purchaseDate: item.purchaseDate,
+    property: item.propertyId
+      ? { _id: item.propertyId, nome: item.propertyName || 'Imóvel' }
+      : null,
+    category: item.category,
+    subcategory: item.subcategory,
+    observation: item.observation || '',
+    filePath: item.filePath || '',
+    createdAt: item.createdAt,
+  };
+}
 
 export default function DashboardScreen() {
   const router = useRouter();
@@ -43,14 +63,26 @@ export default function DashboardScreen() {
 
   const loadDashboardData = async () => {
     try {
-      const [propsData, invoicesData] = await Promise.all([
-        PropertyService.getProperties(),
-        InvoiceService.getInvoices(),
+      const localInvoices = await InvoiceLocalRepository.getInvoices();
+      if (localInvoices.length > 0) {
+        setInvoices(localInvoices.map(mapLocalToResponse));
+      }
+
+      const [propsData, freshInvoices] = await Promise.all([
+        PropertyService.getProperties().catch(() => properties),
+        SyncService.syncAll().catch(() => localInvoices),
       ]);
-      setProperties(propsData);
-      setInvoices(invoicesData);
+
+      if (propsData) {
+        setProperties(propsData);
+      }
+      if (freshInvoices) {
+        setInvoices(freshInvoices.map(mapLocalToResponse));
+      }
       setServerOnline(true);
     } catch {
+      const fallbackLocal = await InvoiceLocalRepository.getInvoices();
+      setInvoices(fallbackLocal.map(mapLocalToResponse));
       setServerOnline(false);
     } finally {
       setIsLoading(false);
