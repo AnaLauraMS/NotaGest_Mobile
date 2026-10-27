@@ -115,6 +115,7 @@ router.post('/internal', userController.createProfileInternal);
 
 router.post('/register', userController.registerUser);
 router.post('/login', userController.loginUser);
+router.post('/logout', protect, userController.logoutUser);
 
 router.get('/:id', protect, userController.getUserProfile);
 router.put('/:id', protect, userController.updateUserProfile);

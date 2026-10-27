@@ -1,4 +1,4 @@
-import { getAuthServiceUrl, loginUser, registerUser, decodeJwt } from './authService';
+import { getAuthServiceUrl, loginUser, registerUser, decodeJwt, logoutUser } from './authService';
 
 describe('authService', () => {
   const originalEnv = process.env;
@@ -175,4 +175,50 @@ describe('authService', () => {
       expect(result).toEqual({ id: '', email: '' });
     });
   });
+
+  describe('logoutUser', () => {
+    it('should call backend logout endpoint when token exists and clear localStorage', async () => {
+      localStorage.setItem('token', 'stored-token');
+      localStorage.setItem('user', JSON.stringify({ id: '1' }));
+      mockFetch.mockResolvedValueOnce({ ok: true, json: async () => ({}) });
+
+      await logoutUser();
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        'https://notagest-0o2r.onrender.com/api/users/logout',
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: 'Bearer stored-token',
+          },
+        }
+      );
+      expect(localStorage.getItem('token')).toBeNull();
+      expect(localStorage.getItem('user')).toBeNull();
+    });
+
+    it('should clear localStorage even if backend logout fails', async () => {
+      localStorage.setItem('token', 'stored-token');
+      localStorage.setItem('user', JSON.stringify({ id: '1' }));
+      mockFetch.mockRejectedValueOnce(new Error('Network error'));
+
+      await logoutUser();
+
+      expect(localStorage.getItem('token')).toBeNull();
+      expect(localStorage.getItem('user')).toBeNull();
+    });
+
+    it('should not call backend if token does not exist in localStorage', async () => {
+      localStorage.removeItem('token');
+      localStorage.setItem('user', JSON.stringify({ id: '1' }));
+
+      await logoutUser();
+
+      expect(mockFetch).not.toHaveBeenCalled();
+      expect(localStorage.getItem('token')).toBeNull();
+      expect(localStorage.getItem('user')).toBeNull();
+    });
+  });
 });
+

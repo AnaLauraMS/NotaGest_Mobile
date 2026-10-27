@@ -16,6 +16,7 @@ export enum ContentType {
 export enum ApiEndpoint {
   Login = '/api/users/login',
   Register = '/api/users/register',
+  Logout = '/api/users/logout',
   UserProfile = '/api/users/me',
   Properties = '/api/imoveis',
   PropertiesNames = '/api/imoveis/nome',

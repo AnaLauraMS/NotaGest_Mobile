@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import * as userService from '../services/userService.js';
 import User from '../models/userModel.js';
+import RevokedToken from '../models/revokedTokenModel.js';
 import { IAuthRequest } from '../interfaces/IAuthRequest.js';
 import { IUserBody, IChangePasswordBody } from '../interfaces/IUserRequest.js';
 import { logger } from '../utils/logger.js';
@@ -383,5 +384,31 @@ export const registerUser = async (req: any, res: Response) => {
   } catch (err: any) {
     logger.error("Falha no registro", { email, error: err.message });
     res.status(500).json({ message: 'Erro no servidor.' });
+  }
+};
+
+export const logoutUser = async (req: IAuthRequest, res: Response) => {
+  const token = req.headers.authorization?.split(' ')[1];
+  const userId = req.user?.id;
+
+  if (!token || !userId) {
+    return res.status(400).json({ message: 'Token ou usuário não identificado.' });
+  }
+
+  try {
+    const decoded: any = jwt.decode(token);
+    const expiresAt = decoded?.exp ? new Date(decoded.exp * 1000) : new Date(Date.now() + 6 * 3600 * 1000);
+
+    await RevokedToken.findOneAndUpdate(
+      { token },
+      { token, userId, expiresAt },
+      { upsert: true, new: true }
+    );
+
+    logger.info('Token revogado com sucesso no logout', { userId });
+    return res.status(200).json({ message: 'Sessão encerrada e token revogado com sucesso.' });
+  } catch (error: any) {
+    logger.error('Erro ao revogar token no logout', { error: error.message, userId });
+    return res.status(500).json({ message: 'Erro ao processar logout.' });
   }
 };

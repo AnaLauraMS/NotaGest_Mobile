@@ -89,3 +89,23 @@ export function decodeJwt(token: string): { id: string, email: string } {
         return { id: '', email: '' };
     }
 }
+
+export async function logoutUser(): Promise<void> {
+    const authUrl = getAuthServiceUrl();
+    const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+    if (token) {
+        try {
+            await fetch(`${authUrl}/logout`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${token}`
+                }
+            });
+        } catch {}
+    }
+    if (typeof window !== 'undefined') {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+    }
+}

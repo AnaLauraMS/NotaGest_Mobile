@@ -3,10 +3,11 @@ import jwt from 'jsonwebtoken';
 import { IAuthRequest } from '../interfaces/IAuthRequest.js';
 import dotenv from 'dotenv';
 import { logger } from '../utils/logger.js';
+import RevokedToken from '../models/revokedTokenModel.js';
 
 dotenv.config();
 
-export const protect = (req: IAuthRequest, res: Response, next: NextFunction) => {
+export const protect = async (req: IAuthRequest, res: Response, next: NextFunction) => {
     console.log(`\n Middleware "protect" acionado para: ${req.method} ${req.originalUrl}`); 
 
     let token: string | undefined;
@@ -22,6 +23,15 @@ export const protect = (req: IAuthRequest, res: Response, next: NextFunction) =>
                 });
 
                 return res.status(401).json({ message: 'Não autorizado, token nulo' });
+            }
+
+            const isRevoked = await RevokedToken.exists({ token });
+            if (isRevoked) {
+                logger.error('Tentativa de uso de token revogado', {
+                    route: req.originalUrl,
+                    method: req.method
+                });
+                return res.status(401).json({ message: 'Token revogado. Faça login novamente.' });
             }
 
             const secret = process.env.JWT_SECRET as string;

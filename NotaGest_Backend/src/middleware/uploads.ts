@@ -33,10 +33,26 @@ const storage: StorageEngine = multer.diskStorage({
     }
 });
 
-// Inicializa o Multer
+const ALLOWED_MIME_TYPES = new Set([
+    'image/jpeg',
+    'image/png',
+    'image/webp',
+    'application/pdf'
+]);
+
+const ALLOWED_EXTENSIONS = new Set(['.jpg', '.jpeg', '.png', '.webp', '.pdf']);
+
 const upload = multer({ 
     storage: storage,
-    limits: { fileSize: 1024 * 1024 * 10 } // Exemplo: Limite de 10MB
+    limits: { fileSize: 1024 * 1024 * 5 },
+    fileFilter: (_req, file, cb) => {
+        const ext = path.extname(file.originalname).toLowerCase();
+        if (ALLOWED_MIME_TYPES.has(file.mimetype) && ALLOWED_EXTENSIONS.has(ext)) {
+            cb(null, true);
+        } else {
+            cb(new Error('Tipo de arquivo não permitido. Apenas imagens JPEG, PNG, WEBP e documentos PDF são aceitos.'));
+        }
+    }
 });
 
 // Exportação padrão do middleware configurado para um único arquivo

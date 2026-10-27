@@ -33,6 +33,9 @@ export class AuthService {
   }
 
   public static async logout(): Promise<void> {
+    try {
+      await httpClient.post(ApiEndpoint.Logout);
+    } catch {}
     await SecureStorageService.clearAll();
   }
 }

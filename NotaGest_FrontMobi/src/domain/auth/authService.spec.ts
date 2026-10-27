@@ -130,9 +130,21 @@ describe('AuthService', () => {
     await expect(AuthService.getProfile()).rejects.toThrow();
   });
 
-  it('should clear all tokens and user data on logout', async () => {
+  it('should call backend logout endpoint and clear all tokens on logout', async () => {
+    (httpClient.post as jest.Mock).mockResolvedValueOnce({ data: {} });
+
     await AuthService.logout();
 
+    expect(httpClient.post).toHaveBeenCalledWith(ApiEndpoint.Logout);
+    expect(SecureStorageService.clearAll).toHaveBeenCalledTimes(1);
+  });
+
+  it('should clear all tokens even if backend logout fails due to network error', async () => {
+    (httpClient.post as jest.Mock).mockRejectedValueOnce(new Error('Network error'));
+
+    await AuthService.logout();
+
+    expect(httpClient.post).toHaveBeenCalledWith(ApiEndpoint.Logout);
     expect(SecureStorageService.clearAll).toHaveBeenCalledTimes(1);
   });
 });
